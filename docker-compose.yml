@@ -1,0 +1,110 @@
+version: '3.8'
+services:
+  config-server:
+    image: 'config-server:latest'
+    container_name: config-server
+    healthcheck:
+      test: [ "CMD","curl","-f" ,"http://localhost:8888/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "8888:8888"
+    networks:
+      springboot-mysql-net:
+
+  mysqldb:
+    container_name: mysqldb
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: department_db
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+    networks:
+      springboot-mysql-net:
+
+  discovery-server:
+    image: 'discovery-server:latest'
+    container_name: discovery-server
+    healthcheck:
+      test: [ "CMD","curl","-f" ,"http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      config-server:
+        condition: service_healthy
+    ports:
+      - "8761:8761"
+    networks:
+      springboot-mysql-net:
+
+  department-service:
+    image: 'department-service:latest'
+    container_name: department-service
+    healthcheck:
+      test: [ "CMD","curl","-f" ,"http://localhost:8081/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      config-server:
+          condition: service_healthy
+      mysqldb:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    networks:
+      springboot-mysql-net:
+
+  employee-service:
+    image: 'employee-service:latest'
+    container_name: employee-service
+    healthcheck:
+      test: [ "CMD","curl","-f" ,"http://localhost:8082/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysqldb:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    networks:
+      springboot-mysql-net:
+
+  api-gateway:
+    image: 'api-gateway:latest'
+    container_name: api-gateway
+    healthcheck:
+      test: [ "CMD","curl","-f" ,"http://localhost:8083/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysqldb:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+      employee-service:
+        condition: service_healthy
+      department-service:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    networks:
+      springboot-mysql-net:
+networks:
+  springboot-mysql-net:
+
