@@ -8,5 +8,5 @@ spring:
         git:
           uri: https://github.com/dineshvenba0811/PvtOrganisation-microservice-config
           default-label: main
-  profiles:
-    active: docker
+  #profiles:
+   # active: docker

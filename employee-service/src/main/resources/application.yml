@@ -4,6 +4,6 @@ spring:
     name: employee-service
   config:
     import: optional:configserver:http://localhost:8888/
-  profiles:
-      active: docker
+    #profiles:
+    # active: docker
 
